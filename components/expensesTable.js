@@ -1,3 +1,6 @@
+import { users } from '../data/users.js';
+import { expenses } from '../data/expenses.js';
+
 const expensesTable = document.createElement('template');
 expensesTable.innerHTML = `
     <style>
@@ -10,6 +13,7 @@ expensesTable.innerHTML = `
 
         form {
             width: 100%;
+            background-color: #00AED8;
         }
 
         table {
@@ -65,9 +69,8 @@ expensesTable.innerHTML = `
 
             <td><button type="submit">Add Expense</button></td>
 
-            <td><select name="user-select" required>
+            <td><select class="user-select" name="user-select" required>
                 <option value="" disabled selected>Choose User</option>
-                <option value="Devlin Rocha">Devlin Rocha</option>  
             </select></td>
 
             <td><select name="category-select" required>
@@ -78,7 +81,7 @@ expensesTable.innerHTML = `
                 <option value="Supplies">Supplies</option>
             </select></td>
 
-            <td><input type="number" placeholder="Cost" required></td>
+            <td><input type="currency" placeholder="Cost" step="any" value=$ required></td>
 
             <td><input type="date" required></td>
 
@@ -101,6 +104,7 @@ class ExpensesTable extends HTMLElement {
                 this.category = transaction[0][1].value;
                 this.cost = transaction[1][0].value;
                 this.date = transaction[1][1].value;
+                this.id = getId(16);
             }; 
         };
 
@@ -110,7 +114,27 @@ class ExpensesTable extends HTMLElement {
         ]);
 
         const expense = new Expense(transaction);
-        console.log(expense);
+        expenses.push(expense);
+        this.setAttribute('transactions', expenses.length);
+
+        function getId(length) {
+
+            let result = '';
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const charactersLength = characters.length;
+
+            for (let i = 0; i < length; i++) {
+                result += characters.charAt(
+                Math.floor(Math.random() * charactersLength));
+            };
+
+            for (let i = 0; i < expenses.length; i++) {
+                if (result === expenses[i].id) {
+                    getId(length);
+                };
+            };
+           return result;
+        };
 
         const table = this.shadowRoot.querySelector('table');
         const row = table.insertRow(-1);
@@ -125,25 +149,82 @@ class ExpensesTable extends HTMLElement {
         <button id="delete-expense" type="button">Delete Expense</button>
         `;
         cell2.innerHTML = expense.user;
+        cell2.classList.add('input')
         cell3.innerHTML = expense.category;
+        cell3.classList.add('input')
         cell4.innerHTML = expense.cost;
+        cell4.classList.add('input')
         cell5.innerHTML = expense.date;
+        cell5.classList.add('input')
 
         cell1.querySelector('#delete-expense').addEventListener('click', () => this.deleteExpense(row))
         cell1.querySelector('#edit-expense').addEventListener('click', () => this.editExpense(row))
     };
 
     deleteExpense(expense) {
+        const index = expenses.forEach(transaction => {
+            expenses.indexOf(transaction);
+        });
+        expenses.splice(index, 1);
         expense.remove();
+        this.setAttribute('transactions', expenses.length);
     };
 
-    editExpense() {
-        console.log('Edit expense');
+    editExpense(row) {
+        const editButton = row.querySelector('.edit-expense');
+        const edits = row.querySelectorAll('.input');
+        if (editButton.textContent === 'Edit User') {
+            edits.forEach(edit => {
+                const previousValue = edit.textContent;
+                edit.innerHTML = `<input type="text" value=${previousValue}>`
+            });
+            editButton.textContent = 'Save Edit';
+            
+        } else if (editButton.textContent === 'Save Edit') {
+            edits.forEach(edit => {
+            });
+            editButton.textContent = 'Edit Expense';
+        };
+        editButton.textContent = 'Save Edit';
+    };
+
+    getUsers() {
+        const select = this.shadowRoot.querySelector('.user-select');
+
+        // Tried brute forcing and still couldn't get it to work properly:
+        for (let i = 1; i < select.options.length; i++) {
+            if (!select.options[i].disabled) select.options.remove(i);
+        };
+
+        users.forEach(user => {
+            const option = document.createElement('option');
+            const fullName = `${user.name.firstName} ${user.name.lastName}`;
+            option.value = fullName;
+            option.innerHTML = fullName;
+            select.appendChild(option);
+        });
+
+        users.forEach(user => {
+            for (let i = 0; i <= select.options.length - 1; i++) {
+                const selectOption = select.options[i];
+                const fullName = `${user.name.firstName} ${user.name.lastName}`;
+                if (!selectOption.disabled && selectOption.value !== fullName) {
+                    return;
+                };
+            };
+        });
     };
 
     connectedCallback() {
         this.shadowRoot.querySelector('form')
         .addEventListener('submit', () => this.addExpense());
+        this.shadowRoot.querySelector('caption')
+        .addEventListener('click', () => this.getUsers());
+    };
+
+    disconnectedCallback() {
+        this.shadowRoot.querySelector('form')
+        .removeEventListener();
     };
 };
 

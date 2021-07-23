@@ -5,35 +5,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet"> 
     <title>LeanData</title>
 
 </head>
 <body>
     <main>
-
-        <h1>LeanData</h1>
+        <figure>
+            <img src="assets/Digital/LeanData_full-logo_for_dark_background_RGB.png" alt="LeanData logo">
+        </figure>
 
         <section class="tables">
 
             <users-table class="table"></users-table>
 
             <expenses-table class="table"></expenses-table>
+
+            <company-expenses-table class="table"></company-expenses-table>
             
         </section>
-        <!--
-                <company-expenses-table></company-expenses-table>
-        
-        -->
-
-
-
-
     </main>
 
     <script src="scripts.js"></script>
-    <script src="usersTable.js"></script>
-    <script src="expensesTable.js"></script>
-    <script src="companyExpensesTable.js"></script>
+    <script type="module" src="components/usersTable.js"></script>
+    <script type="module" src="components/expensesTable.js"></script>
+    <script type="module" src="components/companyExpensesTable.js"></script>
+    <script type="module" src="data/users.js"></script>
+    <script type="module" src="data/expenses.js"></script>
 
 </body>
 </html>

@@ -1,3 +1,5 @@
+import { expenses } from '../data/expenses.js';
+
 const companyExpensesTable = document.createElement('template');
 companyExpensesTable.innerHTML = `
     <style>
@@ -8,8 +10,13 @@ companyExpensesTable.innerHTML = `
             padding: 0;
         }
 
+        section {
+            width: 100%;
+            background-color: #C2E320;
+        }
+
         table {
-            width: 100vw;
+            width: 100%;
         }
 
         caption {
@@ -39,6 +46,8 @@ companyExpensesTable.innerHTML = `
 
     </style>
 
+    <section>
+
     <table>
 
     <caption><h2>Company Expenses</h2></caption>
@@ -57,7 +66,9 @@ companyExpensesTable.innerHTML = `
         <td></td>
     </tr>
 
-</table>
+    </table>
+
+    </section>
 `;
 
 class CompanyExpensesTable extends HTMLElement {
@@ -65,6 +76,43 @@ class CompanyExpensesTable extends HTMLElement {
         super();
         this.shadow = this.attachShadow({ mode: 'open' });
         this.shadowRoot.appendChild(companyExpensesTable.content.cloneNode(true));
+    };
+
+    getExpenses() {
+        const expenseCategories = expenses.map(expense => {
+            return expense.category;
+        });
+
+        try {
+
+            const totalExpenses = expenses
+            .map(expense => Number(expense.cost.replace('$', '')))
+            .reduce((total, expense) => total + expense);
+
+            function getCategory(object, value) {
+                return Object.keys(object).find(key => object[key] === value);
+            };
+
+        } catch (error) {
+
+            console.error(error);
+
+        };
+
+        const table = this.shadowRoot.querySelector('table');
+
+        for (let i = 1; i < expenseCategories.length; i++) {
+            if (select.options.remove(i));
+        };
+
+        for (let i = 0; i < expenseCategories.length; i++) {
+            const row = table.insertRow(-1);
+            const cell1 = row.insertCell(0);
+            const cell2 = row.insertCell(1);
+
+            cell1.innerHTML = expenseCategories[i];
+            cell2.innerHTML = `$${totalExpenses}`;
+        };
     };
 };
 

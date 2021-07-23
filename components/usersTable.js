@@ -1,3 +1,5 @@
+import { users } from '../data/users.js';
+
 const usersTable = document.createElement('template');
 usersTable.innerHTML = `
     <style>
@@ -10,6 +12,7 @@ usersTable.innerHTML = `
 
         form {
             width: 100%;
+            background-color: #27E8BE;
         }
 
         table {
@@ -85,11 +88,34 @@ class UsersTable extends HTMLElement {
             constructor(fullName) {
                 this.firstName = fullName[0].value;
                 this.lastName = fullName[1].value;
+                this.id = getId();
             }; 
         };
 
         const fullName = (this.shadowRoot.querySelector('table').querySelectorAll('input'));
         const user = new User(fullName);
+        const newUser = { 'name': user };
+        users.push(newUser);
+        this.setAttribute('users', users.length);
+
+        function getId(length) {
+
+            let result = '';
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const charactersLength = characters.length;
+
+            for (let i = 0; i < length; i++) {
+                result += characters.charAt(
+                Math.floor(Math.random() * charactersLength));
+            };
+
+            for (let i = 0; i < users.length; i++) {
+                if (result === users[i].id) {
+                    getId(length);
+                };
+            };
+           return result;
+        };
 
         const table = this.shadowRoot.querySelector('table');
         const row = table.insertRow(-1);
@@ -99,28 +125,60 @@ class UsersTable extends HTMLElement {
         const cell4 = row.insertCell(3);
 
         cell1.innerHTML = `
-        <button id="edit-user" type="button">Edit User</button>
-        <button id="delete-user" type="button">Delete User</button>
+        <button class="edit-user" type="button">Edit User</button>
+        <button class="delete-user" type="button">Delete User</button>
         `;
         cell2.innerHTML = user.firstName;
+        cell2.classList.add('first-name');
+        cell2.classList.add('input');
         cell3.innerHTML = user.lastName;
-        cell4.innerHTML = '$$$';
+        cell3.classList.add('last-name');
+        cell3.classList.add('input');
+        cell4.innerHTML = '';
 
-        cell1.querySelector('#delete-user').addEventListener('click', () => this.deleteUser(row))
-        cell1.querySelector('#edit-user').addEventListener('click', () => this.editUser(row))
+        cell1.querySelector('.delete-user').addEventListener('click', () => this.deleteUser(row))
+        cell1.querySelector('.edit-user').addEventListener('click', () => this.editUser(row))
     };
 
     deleteUser(user) {
+        const index = users.forEach(user => {
+            users.indexOf(user);
+        });
+        users.splice(index, 1);
         user.remove();
+        this.setAttribute('users', users.length);
     };
 
-    editUser() {
-        console.log('Edit user');
+    editUser(row) {
+        const editButton = row.querySelector('.edit-user');
+        const edits = row.querySelectorAll('.input');
+        if (editButton.textContent === 'Edit User') {
+            edits.forEach(edit => {
+                const previousValue = edit.textContent;
+                edit.innerHTML = `<input type="text" value=${previousValue}>`
+            });
+            editButton.textContent = 'Save Edit';
+            
+        } else if (editButton.textContent === 'Save Edit') {
+            edits.forEach(edit => {
+            });
+            editButton.textContent = 'Edit User';
+        };
+        editButton.textContent = 'Save Edit';
+    };
+
+    getExpenses() {
+        console.log('New transaction')
     };
 
     connectedCallback() {
         this.shadowRoot.querySelector('form')
         .addEventListener('submit', () => this.addUser());
+    };
+
+    disconnectedCallback() {
+        this.shadowRoot.querySelector('form')
+        .removeEventListener();
     };
 };
 
