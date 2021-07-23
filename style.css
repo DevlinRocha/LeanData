@@ -14,18 +14,17 @@ main {
 }
 
 figure {
-    padding: 32px 16px;
+    padding: 32px;
     background-color: #2DB670;
 }
 
 figure img {
-    width: 50%;
+    width: clamp(10vw, 25vw, 30vw);
     height: auto;
 }
 
-
 .tables {
-    padding: 16px;
+    padding: 32px;
 }
 
 .table {
