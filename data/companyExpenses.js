@@ -1,0 +1,3 @@
+export { companyExpenses };
+
+const companyExpenses = [];

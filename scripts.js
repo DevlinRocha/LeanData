@@ -8,10 +8,8 @@ const companyExpensesTableComp = document.querySelector('company-expenses-table'
 
 const observer = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
-        if (mutation.attributeName === 'transactions') {
-            usersTableComp.getExpenses();
-        };
-        expensesTableComp.getUsers();
+        usersTableComp.getUsers();
+        expensesTableComp.getExpenses();
         companyExpensesTableComp.getExpenses();
     });
 });
