@@ -1,4 +1,5 @@
 import { expenses } from '../data/expenses.js';
+import { companyExpenses } from '../data/companyExpenses.js';
 
 const companyExpensesTable = document.createElement('template');
 companyExpensesTable.innerHTML = `
@@ -79,40 +80,60 @@ class CompanyExpensesTable extends HTMLElement {
     };
 
     getExpenses() {
-        const expenseCategories = expenses.map(expense => {
-            return expense.category;
+        const expenseCategories = expenses
+            .map(expense => expense.category);
+
+        function findIndex(category) {
+            return Object.keys(expenses).find(key => expenses[key].category === category);
+        };
+
+        expenseCategories.forEach(category => {
+            const index = findIndex(category);
+            const expense = { 'category': expenses[index].category, 'cost': expenses[index].cost }
+            companyExpenses.push(expense);
         });
 
-        try {
+        console.log(companyExpenses);
 
-            const totalExpenses = expenses
-            .map(expense => Number(expense.cost.replace('$', '')))
-            .reduce((total, expense) => total + expense);
+        const table = this.shadowRoot.querySelector('tbody');
+        table.innerHTML = `
+            ${companyExpenses.map(expense => {
+                return `
+                    <tr>
+                        <td>${expense.category}</td>
+                        <td>$${expense.cost}</td>
+                    </tr>
+                `;
+            }).join('')}
+        `;
 
-            function getCategory(object, value) {
-                return Object.keys(object).find(key => object[key] === value);
-            };
+        // const table = this.shadowRoot.querySelector('tbody');
+        // console.log(table)
+        // table.innerHTML = `
+        //     ${expenses.map(expense => {
+        //         return `
+        //             <tr>
+        //                 <td>${expense.category}</td>
+        //                 <td>$${expense.cost}</td>
+        //             </tr>
+        //         `;
+        //     }).join('')}
+        // `;
 
-        } catch (error) {
-
-            console.error(error);
-
-        };
-
-        const table = this.shadowRoot.querySelector('table');
-
-        for (let i = 1; i < expenseCategories.length; i++) {
-            if (select.options.remove(i));
-        };
-
-        for (let i = 0; i < expenseCategories.length; i++) {
-            const row = table.insertRow(-1);
-            const cell1 = row.insertCell(0);
-            const cell2 = row.insertCell(1);
-
-            cell1.innerHTML = expenseCategories[i];
-            cell2.innerHTML = `$${totalExpenses}`;
-        };
+        // const table = this.shadowRoot.querySelector('tbody');
+        // console.log(table)
+        // table.innerHTML = `
+        //     ${expenseCategories.map(category => {
+        //         expenses.map(expense => {
+        //             return `
+        //                 <tr>
+        //                     <td>${category}</td>
+        //                     </td>${expense.cost}</td>
+        //                 </tr>
+        //             `;
+        //         });
+        //     }).join('')}
+        // `;
     };
 };
 

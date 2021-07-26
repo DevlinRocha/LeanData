@@ -1,4 +1,3 @@
 export { expenses };
 
-const expenses = [
-];
+const expenses = [];

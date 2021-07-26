@@ -11,6 +11,10 @@ expensesTable.innerHTML = `
             padding: 0;
         }
 
+        .hidden {
+            display: none;
+        }
+
         form {
             width: 100%;
             background-color: #00AED8;
@@ -61,31 +65,39 @@ expensesTable.innerHTML = `
                 <th>Category:</th>
                 <th>Cost:</th>
                 <th>Date:</th>
+                <th class="hidden">Transaction ID:</th>
 
             </tr>
         </thead>
 
-        <tr>
+        <tbody>
+            <tr>
 
-            <td><button type="submit">Add Expense</button></td>
+                <td><button type="submit">Add Expense</button></td>
 
-            <td><select class="user-select" name="user-select" required>
-                <option value="" disabled selected>Choose User</option>
-            </select></td>
+                <td><select class="user-select" name="user-select" required>
+                    <option value="" disabled selected>Choose User</option>
+                </select></td>
 
-            <td><select name="category-select" required>
-                <option value="" disabled selected>Choose Category</option>
-                <option value="Food">Food</option>
-                <option value="Travel">Travel</option>
-                <option value="Health">Health</option>
-                <option value="Supplies">Supplies</option>
-            </select></td>
+                <td><select name="category-select" required>
+                    <option value="" disabled selected>Choose Category</option>
+                    <option value="Food">Food</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Health">Health</option>
+                    <option value="Supplies">Supplies</option>
+                </select></td>
 
-            <td><input type="currency" placeholder="Cost" step="any" value=$ required></td>
+                <td>
+                    <label for="cost">$</label>
+                    <input type="number" placeholder="Cost" step="0.01" name="cost" required>
+                </td>
 
-            <td><input type="date" required></td>
+                <td><input type="date" required></td>
 
-        </tr>
+                <td class="hidden"></td>
+
+            </tr>
+        </tbody>
     </table>
     </form>
 `;
@@ -101,23 +113,24 @@ class ExpensesTable extends HTMLElement {
         class Expense {
             constructor(transaction) {
                 this.user = transaction[0][0].value;
+                this.userID = transaction[2][0].getAttribute('userid');
                 this.category = transaction[0][1].value;
-                this.cost = transaction[1][0].value;
+                this.cost = Number(transaction[1][0].value);
                 this.date = transaction[1][1].value;
-                this.id = getId(16);
+                this.expenseID = getID(16);
             }; 
         };
 
         const transaction = ([
-            this.shadowRoot.querySelector('table').querySelectorAll('select'),
-            this.shadowRoot.querySelector('table').querySelectorAll('input')
+            this.shadowRoot.querySelectorAll('select'),
+            this.shadowRoot.querySelectorAll('input'),
+            this.shadowRoot.querySelector('.user-select').selectedOptions,
         ]);
 
         const expense = new Expense(transaction);
         expenses.push(expense);
-        this.setAttribute('transactions', expenses.length);
 
-        function getId(length) {
+        function getID(length) {
 
             let result = '';
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -129,52 +142,45 @@ class ExpensesTable extends HTMLElement {
             };
 
             for (let i = 0; i < expenses.length; i++) {
-                if (result === expenses[i].id) {
-                    getId(length);
+                if (result === expenses[i].expenseID) {
+                    getID(length);
                 };
             };
            return result;
         };
 
-        const table = this.shadowRoot.querySelector('table');
-        const row = table.insertRow(-1);
-        const cell1 = row.insertCell(0);
-        const cell2 = row.insertCell(1);
-        const cell3 = row.insertCell(2);
-        const cell4 = row.insertCell(3);
-        const cell5 = row.insertCell(4);
+        users.forEach((user) => {
+            expenses.forEach((expense) => {
+                if (user.userID === expense.userID) {
+                    user.expenses += Number(expense.cost);
+                };
+            });
+        });
 
-        cell1.innerHTML = `
-        <button id="edit-expense" type="button">Edit Expense</button>
-        <button id="delete-expense" type="button">Delete Expense</button>
-        `;
-        cell2.innerHTML = expense.user;
-        cell2.classList.add('input')
-        cell3.innerHTML = expense.category;
-        cell3.classList.add('input')
-        cell4.innerHTML = expense.cost;
-        cell4.classList.add('input')
-        cell5.innerHTML = expense.date;
-        cell5.classList.add('input')
-
-        cell1.querySelector('#delete-expense').addEventListener('click', () => this.deleteExpense(row))
-        cell1.querySelector('#edit-expense').addEventListener('click', () => this.editExpense(row))
+        this.setAttribute('transactions', expenses.length);
+        this.getExpenses();        
     };
 
-    deleteExpense(expense) {
-        const index = expenses.forEach(transaction => {
-            expenses.indexOf(transaction);
-        });
+    deleteExpense(button) {
+        const expense = button.closest('.transaction-row');
+        const transactionID = expense.querySelector('.hidden').textContent;
+        function findIndex(transactionID) {
+            return Object.keys(expenses).find(key => expenses[key].expenseID === transactionID);
+        };
+        const index = findIndex(transactionID);
         expenses.splice(index, 1);
         expense.remove();
         this.setAttribute('transactions', expenses.length);
     };
 
-    editExpense(row) {
-        const editButton = row.querySelector('.edit-expense');
-        const edits = row.querySelectorAll('.input');
-        if (editButton.textContent === 'Edit User') {
+    editExpense(button) {
+        const expense = button.closest('.transaction-row');
+        const editButton = expense.querySelector('.edit-expense');
+        const edits = expense.querySelectorAll('.input');
+
+        if (editButton.textContent === 'Edit Expense') {
             edits.forEach(edit => {
+                const previousType = edit.getAttribute('type');
                 const previousValue = edit.textContent;
                 edit.innerHTML = `<input type="text" value=${previousValue}>`
             });
@@ -188,38 +194,75 @@ class ExpensesTable extends HTMLElement {
         editButton.textContent = 'Save Edit';
     };
 
+    getExpenses() {
+        const table = this.shadowRoot.querySelector('tbody');
+        table.innerHTML = `
+            <tr>
+
+                <td><button type="submit">Add Expense</button></td>
+
+                <td><select class="user-select" name="user-select" required>
+                    <option value="" disabled selected>Choose User</option>
+                </select></td>
+
+                <td><select name="category-select" required>
+                    <option value="" disabled selected>Choose Category</option>
+                    <option value="Food">Food</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Health">Health</option>
+                    <option value="Supplies">Supplies</option>
+                </select></td>
+                
+                <td>
+                    <label for="cost">$</label>
+                    <input type="number" placeholder="Cost" step="0.01" required>
+                </td>
+
+                <td><input type="date" required></td>
+
+            </tr>
+            ${expenses.map((expense) => {
+                return `
+                    <tr class="transaction-row">
+                        <td>
+                        <button class="edit-expense" type="button">Edit Expense</button>
+                        <button class="delete-expense" type="button">Delete Expense</button>
+                        </td>
+                        <td class="input">${expense.user}</td>
+                        <td class="input">${expense.category}</td>
+                        <td class="input">$${expense.cost}</td>
+                        <td class="input">${expense.date}</td>
+                        <td class="hidden">${expense.expenseID}</td>
+                    </tr>
+                `;
+            }).join('')}
+        `;
+        const editButtons = table.querySelectorAll('.edit-expense');
+        const deleteButtons = table.querySelectorAll('.delete-expense');
+        editButtons.forEach((button) => {
+            button.addEventListener('click', () => this.editExpense(button));
+        });
+        deleteButtons.forEach((button) => {
+            button.addEventListener('click', () => this.deleteExpense(button));
+        });
+        this.getUsers();
+    };
+
     getUsers() {
         const select = this.shadowRoot.querySelector('.user-select');
-
-        // Tried brute forcing and still couldn't get it to work properly:
-        for (let i = 1; i < select.options.length; i++) {
-            if (!select.options[i].disabled) select.options.remove(i);
-        };
-
-        users.forEach(user => {
-            const option = document.createElement('option');
-            const fullName = `${user.name.firstName} ${user.name.lastName}`;
-            option.value = fullName;
-            option.innerHTML = fullName;
-            select.appendChild(option);
-        });
-
-        users.forEach(user => {
-            for (let i = 0; i <= select.options.length - 1; i++) {
-                const selectOption = select.options[i];
+        const options = `
+            <option value="" disabled selected>Choose User</option>
+            ${users.map((user) => {
                 const fullName = `${user.name.firstName} ${user.name.lastName}`;
-                if (!selectOption.disabled && selectOption.value !== fullName) {
-                    return;
-                };
-            };
-        });
+                return `<option value="${fullName}" userID="${user.userID}">${fullName}</option>`;
+            }).join('')}    
+        `;
+        select.innerHTML = options;
     };
 
     connectedCallback() {
         this.shadowRoot.querySelector('form')
         .addEventListener('submit', () => this.addExpense());
-        this.shadowRoot.querySelector('caption')
-        .addEventListener('click', () => this.getUsers());
     };
 
     disconnectedCallback() {

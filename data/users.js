@@ -1,4 +1,3 @@
 export { users };
 
-const users = [
-];
+const users = [];
