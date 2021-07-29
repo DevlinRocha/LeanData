@@ -150,9 +150,13 @@ class ExpensesTable extends HTMLElement {
         };
 
         users.forEach((user) => {
+            const previousValue = user.expenses;
+            user.expenses = 0;
             expenses.forEach((expense) => {
                 if (user.userID === expense.userID) {
                     user.expenses += Number(expense.cost);
+                } else {
+                    user.expenses = previousValue;
                 };
             });
         });
