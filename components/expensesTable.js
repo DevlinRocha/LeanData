@@ -168,11 +168,27 @@ class ExpensesTable extends HTMLElement {
     deleteExpense(button) {
         const expense = button.closest('.transaction-row');
         const transactionID = expense.querySelector('.hidden').textContent;
-        function findIndex(transactionID) {
+
+        function findTransactionIndex(transactionID) {
             return Object.keys(expenses).find(key => expenses[key].expenseID === transactionID);
         };
-        const index = findIndex(transactionID);
-        expenses.splice(index, 1);
+
+        const transactionIndex = findTransactionIndex(transactionID);
+        
+
+        function findUserIndex(userID) {
+            return Object.keys(users).find(key => users[key].userID === userID);
+        };
+
+
+        const transaction = expenses[transactionIndex];
+        const userIndex = findUserIndex(transaction.userID);
+        const user = users[userIndex];
+
+        user.expenses -= transaction.cost;
+
+
+        expenses.splice(transactionIndex, 1);
         expense.remove();
         this.setAttribute('transactions', expenses.length);
     };

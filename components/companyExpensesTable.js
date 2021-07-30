@@ -93,7 +93,7 @@ class CompanyExpensesTable extends HTMLElement {
             companyExpenses.push(expense);
         });
 
-        console.log(companyExpenses);
+        //console.log(companyExpenses);
 
         const table = this.shadowRoot.querySelector('tbody');
         table.innerHTML = `
